@@ -52,6 +52,7 @@ def main():
 
         posteringer = pd.read_excel(posteringer_file, header=header_row, engine="openpyxl")
         posteringer.columns = posteringer.columns.str.strip()
+        st.write("🔍 Kolonner fundet i posteringer:", list(posteringer.columns))
 
         if "Type" not in posteringer.columns:
             st.error(f"Kolonnen 'Type' mangler. Tilgængelige kolonner: {list(posteringer.columns)}")
