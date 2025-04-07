@@ -66,8 +66,14 @@ def main():
         debitor.columns = debitor.columns.str.strip()
         st.write("📊 Kolonner fundet i debitorsaldo:", list(debitor.columns))
 
+        manglende_kolonner = [col for col in ["Efter 28 dage", "Saldo"] if col not in debitor.columns]
+        if manglende_kolonner:
+            st.error(f"Mangler følgende kolonner i debitorsaldo: {manglende_kolonner}")
+            st.stop()
+
         for col in ["Efter 28 dage", "Saldo"]:
             debitor[col] = pd.to_numeric(debitor[col], errors='coerce')
+
         debitor_pos = debitor[(debitor["Saldo"] > 0) & (debitor["Efter 28 dage"] > 0)]
 
         faktura = pd.read_excel(faktura_file, skiprows=3, engine="openpyxl")
