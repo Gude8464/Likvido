@@ -63,6 +63,9 @@ def main():
         seneste = posteringer["Dato"].max()
 
         debitor = pd.read_excel(debitor_file, skiprows=5, engine="openpyxl")
+        debitor.columns = debitor.columns.str.strip()
+        st.write("📊 Kolonner fundet i debitorsaldo:", list(debitor.columns))
+
         for col in ["Efter 28 dage", "Saldo"]:
             debitor[col] = pd.to_numeric(debitor[col], errors='coerce')
         debitor_pos = debitor[(debitor["Saldo"] > 0) & (debitor["Efter 28 dage"] > 0)]
