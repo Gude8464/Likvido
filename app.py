@@ -44,17 +44,17 @@ def main():
     faktura_file = st.file_uploader("3. Ubetalte fakturaer", type=["xlsx"])
 
     if posteringer_file and debitor_file and faktura_file:
-        # Læs hele posteringer og identificér rigtig header-række
         raw_posteringer = pd.read_excel(posteringer_file, header=None, engine="openpyxl")
         header_row = raw_posteringer[raw_posteringer.apply(lambda row: row.astype(str).str.contains("Type").any(), axis=1)].index.min()
         if pd.isna(header_row):
             st.error("Kunne ikke finde kolonnen 'Type' i kundeindbetalinger. Tjek venligst filens format.")
             st.stop()
 
-        posteringer = pd.read_excel(posteringer_file, skiprows=header_row+1, engine="openpyxl")
+        posteringer = pd.read_excel(posteringer_file, header=header_row, engine="openpyxl")
+        posteringer.columns = posteringer.columns.str.strip()
 
         if "Type" not in posteringer.columns:
-            st.error("Kolonnen 'Type' mangler i kundeindbetalinger-filen.")
+            st.error(f"Kolonnen 'Type' mangler. Tilgængelige kolonner: {list(posteringer.columns)}")
             st.stop()
 
         posteringer = posteringer[posteringer["Type"] == "Kundeindbetaling"]
