@@ -5,6 +5,7 @@ import pandas as pd
 import streamlit as st
 from io import BytesIO
 from datetime import datetime
+import openpyxl  # <- Sikrer at openpyxl er importeret til Excel-læsning
 
 # --- Tilføj logo og adgangskode ---
 LOGO_URL = "https://likvido.dk/wp-content/uploads/2020/10/Likvido_logo_blue.svg"
@@ -34,7 +35,6 @@ def main():
     st.title("Likvido Inkasso Automatisering")
     st.write("Upload de 3 nødvendige filer for at identificere inkassosager og oprydning.")
 
-    # --- Adgangskontrol ---
     adgang = st.text_input("Indtast adgangskode for at fortsætte", type="password")
     if adgang != ADGANGSKODE:
         st.warning("Adgangskode påkrævet for at bruge appen.")
@@ -45,17 +45,17 @@ def main():
     faktura_file = st.file_uploader("3. Ubetalte fakturaer", type=["xlsx"])
 
     if posteringer_file and debitor_file and faktura_file:
-        posteringer = pd.read_excel(posteringer_file, skiprows=5)
+        posteringer = pd.read_excel(posteringer_file, skiprows=5, engine="openpyxl")
         posteringer = posteringer[posteringer["Type"] == "Kundeindbetaling"]
         posteringer["Dato"] = pd.to_datetime(posteringer["Dato"], errors='coerce')
         seneste = posteringer["Dato"].max()
 
-        debitor = pd.read_excel(debitor_file, skiprows=5)
+        debitor = pd.read_excel(debitor_file, skiprows=5, engine="openpyxl")
         for col in ["Efter 28 dage", "Saldo"]:
             debitor[col] = pd.to_numeric(debitor[col], errors='coerce')
         debitor_pos = debitor[(debitor["Saldo"] > 0) & (debitor["Efter 28 dage"] > 0)]
 
-        faktura = pd.read_excel(faktura_file, skiprows=3)
+        faktura = pd.read_excel(faktura_file, skiprows=3, engine="openpyxl")
         faktura["Antal dage forfalden"] = pd.to_numeric(faktura["Antal dage forfalden"], errors="coerce")
         faktura["Kundenr."] = faktura["Kundenr."].astype(str)
         debitor_pos["Nr."] = debitor_pos["Nr."].astype(str)
