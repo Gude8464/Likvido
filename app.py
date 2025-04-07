@@ -1,4 +1,3 @@
-
 # Inkasso Automatisering - Web App backend med Streamlit
 
 import pandas as pd
@@ -45,7 +44,19 @@ def main():
     faktura_file = st.file_uploader("3. Ubetalte fakturaer", type=["xlsx"])
 
     if posteringer_file and debitor_file and faktura_file:
-        posteringer = pd.read_excel(posteringer_file, skiprows=5, engine="openpyxl")
+        # Læs hele posteringer og identificér rigtig header-række
+        raw_posteringer = pd.read_excel(posteringer_file, header=None, engine="openpyxl")
+        header_row = raw_posteringer[raw_posteringer.apply(lambda row: row.astype(str).str.contains("Type").any(), axis=1)].index.min()
+        if pd.isna(header_row):
+            st.error("Kunne ikke finde kolonnen 'Type' i kundeindbetalinger. Tjek venligst filens format.")
+            st.stop()
+
+        posteringer = pd.read_excel(posteringer_file, skiprows=header_row+1, engine="openpyxl")
+
+        if "Type" not in posteringer.columns:
+            st.error("Kolonnen 'Type' mangler i kundeindbetalinger-filen.")
+            st.stop()
+
         posteringer = posteringer[posteringer["Type"] == "Kundeindbetaling"]
         posteringer["Dato"] = pd.to_datetime(posteringer["Dato"], errors='coerce')
         seneste = posteringer["Dato"].max()
@@ -90,7 +101,7 @@ def main():
 
         st.write("## Klar mail til bogholder")
         kunder = ", ".join(opryd['Nr.'].dropna().astype(str).unique())
-        mail = f'''Emne: Oprydning af debitorer - handling påkrævet\n\nHej [bogholder],\n\nJeg er i gang med at gennemgå vores debitorer.\nSeneste bogførte indbetaling er fra {seneste.date()}.\nVil du bogføre nye indbetalinger og rydde op i følgende kunder:\n{kunder}\n\nBedste hilsner\n[Dit navn]'''
+        mail = f"""Emne: Oprydning af debitorer - handling påkrævet\n\nHej [bogholder],\n\nJeg er i gang med at gennemgå vores debitorer.\nSeneste bogførte indbetaling er fra {seneste.date()}.\nVil du bogføre nye indbetalinger og rydde op i følgende kunder:\n{kunder}\n\nBedste hilsner\n[Dit navn]"""
         st.text_area("Oprydningsmail", mail, height=200)
 
 if __name__ == "__main__":
