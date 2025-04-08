@@ -6,9 +6,9 @@ from io import BytesIO
 from datetime import datetime
 import openpyxl  # <- Sikrer at openpyxl er importeret til Excel-læsning
 
-# --- Tilføj logo og adgangskode ---
+# --- Tilføj logo ---
 LOGO_URL = "https://likvido.dk/wp-content/uploads/2020/10/Likvido_logo_blue.svg"
-ADGANGSKODE = "likvido2025"
+
 
 def vurder_faktura(dage, seneste_indbetaling):
     if pd.isna(dage):
@@ -33,11 +33,6 @@ def main():
     st.image(LOGO_URL, width=200)
     st.title("Likvido Inkasso Automatisering")
     st.write("Upload de 3 nødvendige filer for at identificere inkassosager og oprydning.")
-
-    adgang = st.text_input("Indtast adgangskode for at fortsætte", type="password")
-    if adgang != ADGANGSKODE:
-        st.warning("Adgangskode påkrævet for at bruge appen.")
-        st.stop()
 
     posteringer_file = st.file_uploader("1. Kundeindbetalinger (konto 5600 / 17110)", type=["xlsx"])
     debitor_file = st.file_uploader("2. Debitorsaldo", type=["xlsx"])
